@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -29,10 +30,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Switch s = (Switch) findViewById(R.id.switch1);
-        s.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        final ToggleButton button = (ToggleButton)findViewById(R.id.toggleButton);
+        button.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            public void onClick(View v) {
                 WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
                 DhcpInfo dhcpInfo = wifiManager.getDhcpInfo();
                 String ipAddr = long2ip(dhcpInfo.ipAddress);
@@ -46,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     }
                 }
-                if (isChecked) {
+                if(button.isChecked()) {
                     try {
                         Object ipAssignment = getEnumValue("android.net.IpConfiguration$IpAssignment", "STATIC");
                         Class ipAssignmentClass = Class.forName("android.net.IpConfiguration$IpAssignment");

@@ -8,29 +8,10 @@
         tools:context="com.hejf.netmgr.MainActivity">
     <LinearLayout android:layout_width="368dp" android:layout_height="495dp" tools:layout_editor_absoluteY="8dp"
                   tools:layout_editor_absoluteX="8dp">
-        <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Hello World!"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
         <ToggleButton
                 android:text="ToggleButton"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" tools:layout_editor_absoluteY="318dp"
-                tools:layout_editor_absoluteX="26dp" android:id="@+id/toggleButton"/>
-        <Switch
-                android:text="dns"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" tools:layout_editor_absoluteY="402dp"
-                tools:layout_editor_absoluteX="150dp" android:id="@+id/switch1"
-        />
-        <Switch
-                android:text="proxy"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" tools:layout_editor_absoluteY="402dp"
-                tools:layout_editor_absoluteX="150dp" android:id="@+id/switch2"/>
+                android:layout_height="wrap_content" android:id="@+id/toggleButton" android:layout_weight="1"
+                android:textOn="DNS开启" android:textOff="DNS关闭"/>
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>
