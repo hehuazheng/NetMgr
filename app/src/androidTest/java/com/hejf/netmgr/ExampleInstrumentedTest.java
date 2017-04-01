@@ -7,6 +7,11 @@ import android.support.test.runner.AndroidJUnit4;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.InetAddress;
+
 import static org.junit.Assert.*;
 
 /**
@@ -16,11 +21,16 @@ import static org.junit.Assert.*;
  */
 @RunWith(AndroidJUnit4.class)
 public class ExampleInstrumentedTest {
-    @Test
-    public void useAppContext() throws Exception {
-        // Context of the app under test.
-        Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.hejf.netmgr", appContext.getPackageName());
+    @Test
+    public void testReflection() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        Class laClass = Class.forName("android.net.LinkAddress");
+        Constructor laConstructor = laClass.getConstructor(new Class[]{InetAddress.class, int.class});
+//        Object linkAddress = laConstructor.newInstance(, prefixLength);
+    }
+
+    private static Object getEnumValue(String enumClassName, String enumValue) throws ClassNotFoundException {
+        Class<Enum> enumClz = (Class<Enum>) Class.forName(enumClassName);
+        return Enum.valueOf(enumClz, enumValue);
     }
 }
