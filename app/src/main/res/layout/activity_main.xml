@@ -13,5 +13,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" android:id="@+id/toggleButton" android:layout_weight="1"
                 android:textOn="DNS开启" android:textOff="DNS关闭"/>
+        <ToggleButton
+                android:text="ToggleButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:id="@+id/toggleButton2" android:layout_weight="1"
+                android:textOn="Proxy开启"
+                android:textOff="Proxy关闭"/>
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>

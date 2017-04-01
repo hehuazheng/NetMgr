@@ -3,6 +3,7 @@ package com.hejf.netmgr;
 import android.content.Context;
 import android.net.DhcpInfo;
 import android.net.LinkAddress;
+import android.net.ProxyInfo;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -30,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final ToggleButton button = (ToggleButton)findViewById(R.id.toggleButton);
+        final ToggleButton button = (ToggleButton) findViewById(R.id.toggleButton);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -47,11 +48,11 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     }
                 }
-                if(button.isChecked()) {
+                if (button.isChecked()) {
                     try {
                         Object ipAssignment = getEnumValue("android.net.IpConfiguration$IpAssignment", "STATIC");
                         Class ipAssignmentClass = Class.forName("android.net.IpConfiguration$IpAssignment");
-                        Method  assignMethod = getMethod("setIpAssignment", ipAssignmentClass);
+                        Method assignMethod = getMethod("setIpAssignment", ipAssignmentClass);
                         assignMethod.invoke(currentConf, ipAssignment);
 
                         Class laClass = Class.forName("android.net.LinkAddress");
@@ -92,6 +93,53 @@ public class MainActivity extends AppCompatActivity {
                         Toast toast = Toast.makeText(getApplicationContext(), "取消代理失败", Toast.LENGTH_LONG);
                         toast.show();
                     }
+                }
+            }
+        });
+
+        final ToggleButton button2 = (ToggleButton) findViewById(R.id.toggleButton2);
+        button2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                DhcpInfo dhcpInfo = wifiManager.getDhcpInfo();
+                String ipAddr = long2ip(dhcpInfo.ipAddress);
+                String gateway = long2ip(dhcpInfo.gateway);
+                String ssid = wifiManager.getConnectionInfo().getSSID();
+                List<WifiConfiguration> list = wifiManager.getConfiguredNetworks();
+                WifiConfiguration currentConf = null;
+                for (WifiConfiguration wc : list) {
+                    if (wc.SSID.equals(ssid)) {
+                        currentConf = wc;
+                        break;
+                    }
+                }
+                try {
+                    if (button2.isChecked()) {
+                        Object ipAssignment = getEnumValue("android.net.IpConfiguration$IpAssignment", "DHCP");
+                        Class ipAssignmentClass = Class.forName("android.net.IpConfiguration$IpAssignment");
+                        Method assignMethod = getMethod("setIpAssignment", ipAssignmentClass);
+                        assignMethod.invoke(currentConf, ipAssignment);
+
+                        ProxyInfo httpProxy = ProxyInfo.buildDirectProxy("192.168.2.64", 8888);
+                        Method m = getMethod("setHttpProxy", ProxyInfo.class);
+                        m.invoke(currentConf, httpProxy);
+                        wifiManager.updateNetwork(currentConf); //apply the setting
+                        wifiManager.saveConfiguration(); //Save it
+                    } else {
+                        Object ipAssignment = getEnumValue("android.net.IpConfiguration$IpAssignment", "DHCP");
+                        Class ipAssignmentClass = Class.forName("android.net.IpConfiguration$IpAssignment");
+                        Method assignMethod = getMethod("setIpAssignment", ipAssignmentClass);
+                        assignMethod.invoke(currentConf, ipAssignment);
+
+                        Method m = getMethod("setHttpProxy", ProxyInfo.class);
+                        m.invoke(currentConf, new Object[]{null});
+                        wifiManager.updateNetwork(currentConf); //apply the setting
+                        wifiManager.saveConfiguration(); //Save it
+                    }
+                } catch (Exception e) {
+                    Toast toast = Toast.makeText(getApplicationContext(), "设置失败", Toast.LENGTH_LONG);
+                    toast.show();
                 }
             }
         });
