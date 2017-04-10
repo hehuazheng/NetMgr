@@ -25,29 +25,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         final ToggleButton button = (ToggleButton) findViewById(R.id.toggleButton);
+        final ToggleButton button2 = (ToggleButton) findViewById(R.id.toggleButton2);
+
+        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        WifiConfiguration currentConf = getCurrentWifiConfiguration(wifiManager);
+        String ipStrategy = getIpAssignmentStrategy(currentConf);
+        if ("DHCP".equals(ipStrategy)) {
+            button.setChecked(false);
+        } else {
+            button.setChecked(true);
+        }
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                WifiConfiguration currentConf = getCurrentWifiConfiguration(wifiManager);
                 DhcpInfo dhcpInfo = wifiManager.getDhcpInfo();
                 String ipAddr = long2ip(dhcpInfo.ipAddress);
                 String gateway = long2ip(dhcpInfo.gateway);
-                String ssid = wifiManager.getConnectionInfo().getSSID();
-                List<WifiConfiguration> list = wifiManager.getConfiguredNetworks();
-                WifiConfiguration currentConf = null;
-                for (WifiConfiguration wc : list) {
-                    if (wc.SSID.equals(ssid)) {
-                        currentConf = wc;
-                        break;
-                    }
-                }
                 if (button.isChecked()) {
                     try {
                         Object ipAssignment = getEnumValue("android.net.IpConfiguration$IpAssignment", "STATIC");
@@ -97,23 +98,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        final ToggleButton button2 = (ToggleButton) findViewById(R.id.toggleButton2);
+
         button2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-                DhcpInfo dhcpInfo = wifiManager.getDhcpInfo();
-                String ipAddr = long2ip(dhcpInfo.ipAddress);
-                String gateway = long2ip(dhcpInfo.gateway);
-                String ssid = wifiManager.getConnectionInfo().getSSID();
-                List<WifiConfiguration> list = wifiManager.getConfiguredNetworks();
-                WifiConfiguration currentConf = null;
-                for (WifiConfiguration wc : list) {
-                    if (wc.SSID.equals(ssid)) {
-                        currentConf = wc;
-                        break;
-                    }
-                }
+                WifiConfiguration currentConf = getCurrentWifiConfiguration(wifiManager);
                 try {
                     if (button2.isChecked()) {
                         Object ipAssignment = getEnumValue("android.net.IpConfiguration$IpAssignment", "DHCP");
@@ -124,6 +114,11 @@ public class MainActivity extends AppCompatActivity {
                         ProxyInfo httpProxy = ProxyInfo.buildDirectProxy("192.168.2.64", 8888);
                         Method m = getMethod("setHttpProxy", ProxyInfo.class);
                         m.invoke(currentConf, httpProxy);
+
+                        Class staticIpConfClass = Class.forName("android.net.StaticIpConfiguration");
+                        Method staticM = getMethod("setStaticIpConfiguration", staticIpConfClass);
+                        m.invoke(currentConf, new Object[]{null});
+
                         wifiManager.updateNetwork(currentConf); //apply the setting
                         wifiManager.saveConfiguration(); //Save it
                     } else {
@@ -134,6 +129,11 @@ public class MainActivity extends AppCompatActivity {
 
                         Method m = getMethod("setHttpProxy", ProxyInfo.class);
                         m.invoke(currentConf, new Object[]{null});
+
+                        Class staticIpConfClass = Class.forName("android.net.StaticIpConfiguration");
+                        Method staticM = getMethod("setStaticIpConfiguration", staticIpConfClass);
+                        m.invoke(currentConf, new Object[]{null});
+
                         wifiManager.updateNetwork(currentConf); //apply the setting
                         wifiManager.saveConfiguration(); //Save it
                     }
@@ -143,6 +143,36 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private WifiConfiguration getCurrentWifiConfiguration(WifiManager wifiManager) {
+        String ssid = wifiManager.getConnectionInfo().getSSID();
+        List<WifiConfiguration> list = wifiManager.getConfiguredNetworks();
+        WifiConfiguration currentConf = null;
+        for (WifiConfiguration wc : list) {
+            if (wc.SSID.equals(ssid)) {
+                currentConf = wc;
+                break;
+            }
+        }
+        return currentConf;
+    }
+
+    private static String getIpAssignmentStrategy(WifiConfiguration conf) {
+        Object mIpConfiguration = getField(conf, "mIpConfiguration");
+        Object ipAssignment = getField(mIpConfiguration, "ipAssignment");
+        return ((Enum) ipAssignment).name();
+    }
+
+    private static <T> T getField(Object obj, String fieldName) {
+        try {
+            Field f = obj.getClass().getDeclaredField(fieldName);
+            f.setAccessible(true);
+            return (T) f.get(obj);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     String long2ip(long ip) {
